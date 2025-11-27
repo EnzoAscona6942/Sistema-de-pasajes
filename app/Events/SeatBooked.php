@@ -33,4 +33,12 @@ class SeatBooked implements ShouldBroadcastNow
     {
         return 'seat.booked';
     }
+    // Nombres de los datos que recibirá el frontend
+    public function broadcastWith(): array
+    {
+        return [
+            'seat_id' => $this->seatId,
+            'status' => 'occupied'
+        ];
+    }
 }

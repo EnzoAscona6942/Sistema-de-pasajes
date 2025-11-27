@@ -12,10 +12,14 @@ Route::prefix('v1')->group(function () {
     
     // Obtener asientos de un viaje específico (público)
     Route::get('/trips/{trip}/seats', [SeatController::class, 'index']);
+    Route::post('/trips/{trip}/seat-selection', [SeatController::class, 'toggleSelection']);
 });
-Route::get('/user', function (Request $request) {
+Route::middleware('auth:sanctum')->group(function (){
+    // Rutas protegidas que requieren autenticación
+    Route::get('/user', function (Request $request) {
     return $request->user();
-})->middleware('auth:sanctum');
+});
+});
 
 
-Route::post('/bookings', [BookingController::class, 'store']);
+

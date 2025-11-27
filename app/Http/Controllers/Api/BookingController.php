@@ -5,14 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Trip;
 use App\Models\Seat;
 use App\Models\Booking;
 use App\Enums\BookingStatus;
-use App\Providers\PaymentService;
+use App\Providers\PaymentService; // O App\Services\PaymentService según tu estructura
 use Illuminate\Http\JsonResponse;
-use App\Events\SeatBooked;
+use App\Events\SeatBooked; 
+use App\Jobs\SendTicketJob;
 
 class BookingController extends Controller
 {
@@ -25,94 +25,78 @@ class BookingController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        // 1. Validación de Entrada
+
+        // 1. Validamos SOLO los datos del viaje.
+        // NO validamos user_id porque lo tomamos del sistema (Auth)
         $request->validate([
             'trip_id' => 'required|ulid|exists:trips,id',
             'seat_id' => 'required|exists:seats,id',
-            // En producción, el user_id suele venir de Auth::id(), pero lo dejo flexible según tu pedido
-            'user_id' => 'required|exists:users,id', 
         ]);
 
+        // 2. Obtenemos el usuario autenticado de forma segura
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['message' => 'No autenticado'], 401);
+        }
+
         try {
-            // 2. INICIO DE LA ZONA CRÍTICA (Transacción DB)
-            // Todo lo que ocurra aquí dentro es atómico.
-            $booking = DB::transaction(function () use ($request) {
+            $booking = DB::transaction(function () use ($request, $user) {
                 
-                // A. BLOQUEO PESIMISTA (Pessimistic Locking)
-                // "SELECT * FROM seats WHERE id = ? FOR UPDATE"
-                // Esto bloquea la fila del asiento. Nadie más puede escribir ni bloquear 
-                // este asiento específico hasta que termine esta transacción.
+                // BLOQUEO PESIMISTA
                 $seat = Seat::where('id', $request->seat_id)->lockForUpdate()->first();
-                
                 $trip = Trip::findOrFail($request->trip_id);
-                SeatBooked::dispatch($trip->id, $seat->id);
-                // B. Validación de Integridad Lógica
-                // ¿El asiento pertenece al colectivo que hace este viaje?
+
+                // Validar Integridad
                 if ($seat->bus_id !== $trip->bus_id) {
-                    throw new \Exception('El asiento no corresponde al colectivo de este viaje.');
+                    throw new \Exception('El asiento no corresponde a este viaje.');
                 }
 
-                // C. Verificación de Disponibilidad
-                // Buscamos si YA existe una reserva activa (Pending o Confirmed)
-                // para este viaje y este asiento.
+                // Validar Disponibilidad
                 $isTaken = Booking::where('trip_id', $trip->id)
                     ->where('seat_id', $seat->id)
-                    ->where('status', '!=', BookingStatus::CANCELLED) // Ignoramos las canceladas
+                    ->where('status', '!=', BookingStatus::CANCELLED->value)
                     ->exists();
 
                 if ($isTaken) {
-                    throw new \Exception('El asiento ya no está disponible.'); // Race condition evitada
+                    throw new \Exception('El asiento acaba de ser ocupado por otro pasajero.');
                 }
 
-                // D. Cálculo del Precio (Instantánea)
-                $finalPrice = $trip->base_price * $trip->bus->service_type->multiplier();
-                // Nota: Si el asiento tuviera un tipo específico, la lógica sería más compleja aquí.
+                // Precio
+                $finalPrice = round($trip->base_price * $trip->bus->service_type->multiplier());
 
-                // E. Creación de la Reserva (Estado: PENDING)
+                // Crear Reserva (Usando el ID del usuario autenticado)
                 return Booking::create([
-                    'user_id'    => $request->user_id,
+                    'user_id'    => $user->id, // <--- SEGURIDAD AQUÍ
                     'trip_id'    => $trip->id,
                     'seat_id'    => $seat->id,
                     'status'     => BookingStatus::PENDING,
                     'price_paid' => $finalPrice,
-                    'payment_id' => null, // Aún no pagó
                 ]);
+                // SeatBooked::dispatch($trip->id, $seat->id);
             });
-
-            // 3. PROCESO DE PAGO (Fuera del bloqueo de BD)
-            // Es buena práctica NO bloquear la base de datos mientras esperamos 
-            // la respuesta de una API externa (puede tardar 2-3 segundos).
-            
-            $paymentSuccess = $this->paymentService->process($booking);
-
-            if ($paymentSuccess) {
-                // Actualizamos a Confirmado
+            // Pago (Simulado)
+            if ($this->paymentService->process($booking)) {
                 $booking->update([
                     'status' => BookingStatus::CONFIRMED,
-                    'payment_id' => 'PAY-' . strtoupper(uniqid()), // ID Simulado
+                    'payment_id' => 'PAY-' . strtoupper(uniqid()),
                 ]);
-
-                return response()->json([
-                    'message' => 'Reserva confirmada exitosamente.',
-                    'ticket_id' => $booking->id,
-                    'status' => 'confirmed'
-                ], 201);
-            } else {
-                // Falló el pago: Cancelamos la reserva para liberar el asiento
-                $booking->update(['status' => BookingStatus::CANCELLED]);
                 
-                return response()->json([
-                    'message' => 'El pago fue rechazado.',
-                    'status' => 'cancelled'
-                ], 402); // 402 Payment Required
-            }
+                // Disparar evento de WebSocket (Opcional)
+                // SeatBooked::dispatch($booking->trip_id, $booking->seat_id);
+                SendTicketJob::dispatch($booking);
+                return response()->json(['status' => 'success', 'message' => '¡Reserva exitosa!'], 201);
+            } 
+            
+            // Fallo de pago
+            $booking->update(['status' => BookingStatus::CANCELLED]);
+            return response()->json(['status' => 'error', 'message' => 'Pago rechazado'], 402);
 
         } catch (\Exception $e) {
-            // Manejo de errores (ej: asiento ocupado o validación lógica)
             return response()->json([
-                'error' => 'No se pudo completar la reserva.',
+                'status' => 'error',
                 'message' => $e->getMessage()
-            ], 409); // 409 Conflict
+            ], 409);
         }
     }
 }

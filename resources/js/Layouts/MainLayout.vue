@@ -8,19 +8,19 @@ const user = computed(() => page.props.auth?.user);
 // Menú simple
 const items = [
   { title: 'Inicio', to: '/' },
-  { title: 'Mis Viajes', to: '/bookings' },
+  { title: 'Mis Pasajes', to: '/bookings' },
 ];
 </script>
 
 <template>
   <v-app>
     <!-- Navbar -->
-    <v-app-bar color="indigo-darken-1" elevation="2">
+    <v-app-bar color="indigo-darken-4" elevation="2">
       <v-container class="d-flex align-center py-0">
         <v-app-bar-title class="font-weight-bold">
-            <Link href="/" class="text-white text-decoration-none">
-                🚌 Plat-Bus 10
-            </Link>
+          <Link href="/" class="text-white text-decoration-none">
+          🚌 UTN-BUS
+          </Link>
         </v-app-bar-title>
 
         <v-spacer></v-spacer>
@@ -28,18 +28,23 @@ const items = [
         <!-- Desktop Menu -->
         <div class="d-none d-md-flex align-center gap-4">
           <Link v-for="item in items" :key="item.title" :href="item.to" as="div">
-            <v-btn variant="text" color="white">{{ item.title }}</v-btn>
+          <v-btn variant="text" color="white">{{ item.title }}</v-btn>
           </Link>
-          
+
           <div v-if="user" class="ml-4">
-             <v-avatar color="indigo-lighten-4" size="32" class="mr-2">
-                <span class="text-subtitle-2">{{ user.name.charAt(0) }}</span>
-             </v-avatar>
-             <span class="text-body-2">{{ user.name }}</span>
+            <v-avatar color="indigo-lighten-4" size="32" class="mr-2">
+              <span class="text-subtitle-2">{{ user.name.charAt(0) }}</span>
+            </v-avatar>
           </div>
+
           <div v-else>
-             <Link href="/login" as="div"><v-btn variant="outlined" color="white">Ingresar</v-btn></Link>
+            <Link href="/login" as="div"><v-btn variant="outlined" color="white">Ingresar</v-btn></Link>
           </div>
+        </div>
+        <div v-if="user">
+          <link href="/profile" class="text-white">
+          <v-btn variant="outlined" color="white">{{ user.name }}</v-btn>
+          </link>
         </div>
       </v-container>
     </v-app-bar>
@@ -50,7 +55,7 @@ const items = [
     </v-main>
 
     <v-footer app class="bg-indigo-darken-2 text-center d-flex justify-center">
-      <span class="text-caption text-white">&copy; {{ new Date().getFullYear() }} Plat-Bus System</span>
+      <span class="text-caption text-white">&copy; {{ new Date().getFullYear() }} UTN System</span>
     </v-footer>
   </v-app>
 </template>
