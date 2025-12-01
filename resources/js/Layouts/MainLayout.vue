@@ -9,13 +9,25 @@ const drawer = ref(false); // Estado para el menú lateral móvil
 
 const items = [
   { title: 'Inicio', to: '/', icon: 'mdi-home' },
-  { title: 'Mis Pasajes', to: '/bookings', icon: 'mdi-ticket-account' },
+  { title: 'Mis Pasajes', to: '/dashboard', icon: 'mdi-ticket-account' },
 ];
 </script>
 
 <template>
   <v-app>
     <!-- NAVBAR -->
+     <!-- 1. FONDO PARALLAX GLOBAL -->
+    <!-- position-fixed: Se queda quieto mientras scrolleas -->
+    <!-- z-index: 0: Se queda al fondo -->
+    <v-parallax
+        src="https://cdn.vuetifyjs.com/images/backgrounds/vbanner.jpg"
+        class="position-fixed top-0 left-0 w-100 h-100"
+        style="z-index: 0;"
+    >
+        <!-- Overlay (Capa de color) para que el texto sea legible -->
+        <!-- Ajusta la opacidad (0.9) según cuánto quieras que se vea la imagen -->
+        <div class="fill-height w-100 bg-grey-lighten-5" style="opacity: 0.2;"></div>
+    </v-parallax>
     <v-app-bar color="indigo-darken-4" elevation="2">
       <v-container class="d-flex align-center py-0">
         
@@ -26,7 +38,7 @@ const items = [
           <Link href="/" class="text-white text-decoration-none d-flex align-center">
              <!-- Icono visible solo en móvil para ahorrar espacio de texto -->
              <v-icon class="d-sm-none mr-2">mdi-bus</v-icon>
-             <span class="d-none d-sm-block">🚌 UTN-BUS</span>
+             <span class="d-none d-sm-block">UTN-BUS</span>
              <span class="d-sm-none">UTN</span>
           </Link>
         </v-app-bar-title>

@@ -43,6 +43,7 @@ const tabs = [
 
 <template>
   <MainLayout>
+    <Head title="Inicio" />
     <div class="bg-white border-b mb-6">
         <v-container class="py-0">
             <v-tabs v-model="activeTab" color="indigo-darken-4" align-tabs="center">
@@ -71,7 +72,7 @@ const tabs = [
                 :items="locations"
                 item-title="title"
                 item-value="value"
-                variant="outlined"
+                variant="solo"
                 density="compact"
                 placeholder="Ingresá ciudad o terminal"
                 prepend-inner-icon="mdi-map-marker-outline" 
@@ -98,7 +99,7 @@ const tabs = [
                 :items="locations"
                 item-title="title"
                 item-value="value"
-                variant="outlined"
+                variant="solo"
                 density="compact"
                 placeholder="Ingresá ciudad o terminal"
                 prepend-inner-icon="mdi-map-marker"
@@ -115,8 +116,8 @@ const tabs = [
               <!-- 4. Fechas (Grid anidado) -->
               <v-row dense>
                 <v-col cols="6">
-                    <div class="mb-1 font-weight-medium text-caption text-grey-darken-1">Partida*</div>
                     <v-text-field
+                      label ="Partida"
                         v-model="form.date_departure"
                         type="date"
                         variant="outlined"
@@ -125,8 +126,8 @@ const tabs = [
                     ></v-text-field>
                 </v-col>
                 <v-col cols="6">
-                    <div class="mb-1 font-weight-medium text-caption text-grey-darken-1">Regreso</div>
                     <v-text-field
+                        label="Regreso"
                         v-model="form.date_return"
                         type="date"
                         variant="outlined"
@@ -188,25 +189,30 @@ const tabs = [
 
         <!-- COLUMNA DERECHA: BANNER PROMOCIONAL -->
         <v-col cols="12" md="7" lg="8" class="d-none d-md-block">
-            <v-card elevation="0" color="transparent" class="h-100 d-flex align-center justify-center">
+            <v-card elevation="10" color="transparent" class="h-100 rounded-lg overflow-hidden">
                 <!-- Reemplaza src con tu imagen real en /public/images/ -->
                 <!-- Si no tienes imagen, este placeholder degradado se ve bien -->
                 <v-img
-                    src="/images/banner-home.jpg" 
+                    src="/images/Gemini_Generated_Image_tpdcl1tpdcl1tpdc.png" 
                     class="rounded-lg shadow-lg"
                     cover
                     height="100%"
                     width="100%"
                     min-height="500"
-                    gradient="to bottom right, rgba(255,87,34,0.8), rgba(255,193,7,0.8)"
+                    gradient="to bottom right, rgba(1,46,103,0.8), rgba(0,80,150,0.8)"
                 >
-                    <template v-slot:placeholder>
+                    <!-- <template v-slot:placeholder>
                         <div class="d-flex align-center justify-center fill-height bg-deep-orange-lighten-1 text-white">
                             <div class="text-center">
                                 <h1 class="text-h2 font-weight-black mb-4">VIAJÁ MÁS FÁCIL</h1>
                                 <p class="text-h5">Descargá nuestra APP</p>
                                 <v-icon size="80" class="mt-4">mdi-cellphone-link</v-icon>
                             </div>
+                        </div>
+                    </template> -->
+                    <template v-slot:placeholder>
+                        <div class="d-flex align-center justify-center fill-height">
+                            <v-progress-circular indeterminate color="indigo"></v-progress-circular>
                         </div>
                     </template>
                     
@@ -236,7 +242,7 @@ const tabs = [
 /* Ajustes finos para parecerse a Plataforma 10 */
 .v-field--variant-outlined .v-field__outline__start,
 .v-field--variant-outlined .v-field__outline__end {
-    border-color: #e0e0e0; 
+    border-color: #dad1d1; 
 }
 .v-card {
     border: 1px solid #f0f0f0;
