@@ -57,7 +57,7 @@ class LocationSeeder extends Seeder
 
         // 2. Rellenar hasta llegar a 50 (si faltan) con datos genéricos pero consistentes
         $currentCount = Location::count();
-        $needed = 50 - $currentCount;
+        $needed = 40 - $currentCount;
 
         if ($needed > 0) {
             // Un array de pueblos ficticios o menores para rellenar
