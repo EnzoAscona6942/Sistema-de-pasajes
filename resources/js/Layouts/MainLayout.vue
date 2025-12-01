@@ -1,6 +1,7 @@
 <script setup>
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import GlobalAlerts from '@/Components/GlobalAlerts.vue';
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
@@ -57,5 +58,6 @@ const items = [
     <v-footer app class="bg-indigo-darken-2 text-center d-flex justify-center">
       <span class="text-caption text-white">&copy; {{ new Date().getFullYear() }} UTN System</span>
     </v-footer>
+    <GlobalAlerts />
   </v-app>
 </template>

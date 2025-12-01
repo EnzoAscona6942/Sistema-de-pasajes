@@ -3,11 +3,13 @@ import MainLayout from '@/Layouts/MainLayout.vue';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useForm, usePage, router } from '@inertiajs/vue3';
 // import axios from 'axios';
+import { useNotification } from '@/Composables/useNotification';
 
 const props = defineProps({
   tripId: String,
   passengers: Number
 });
+const { notify, confirmDialog } = useNotification();
 const seatsBeingViewed = ref([]);
 const trip = ref(null);
 const seatsByFloor = ref({});
@@ -96,8 +98,7 @@ const updateSeatStatusFromSocket = (seatId) => {
             const mySelectionIndex = selectedSeats.value.findIndex(s => s.seat_id === seatId);
             if (mySelectionIndex !== -1) {
                 selectedSeats.value.splice(mySelectionIndex, 1);
-                alert('¡Alguien más acaba de reservar el asiento que mirabas!');
-            }
+            notify('¡Alguien más acaba de reservar el asiento que mirabas!', 'warning');            }
         }
     }
 };
@@ -117,7 +118,7 @@ const toggleSeat = async (seat) => {
   if (index === -1) {
     // Lógica de límite de pasajeros...
     if (selectedSeats.value.length >= props.passengers) {
-      alert(`Solo solicitaste ${props.passengers} pasajes.`);
+      notify(`Solo solicitaste ${props.passengers} pasajes. Deselecciona uno para cambiar.`, 'error');
       return;
     }
     selectedSeats.value.push(seat);
@@ -138,7 +139,7 @@ const totalPrice = computed(() => selectedSeats.value.reduce((sum, s) => sum + p
 const handleCheckout = async () => {
     // 1. Validar cantidad
     if (selectedSeats.value.length !== props.passengers) {
-        alert(`Por favor selecciona exactamente ${props.passengers} asientos.`);
+        notify(`Por favor selecciona exactamente ${props.passengers} asientos.`, 'warning');
         return;
     }
 
@@ -146,12 +147,16 @@ const handleCheckout = async () => {
     if (!page.props.auth.user) {
         // Guardamos la URL actual en la sesión para volver después del login
         // Laravel Breeze maneja "intended" automáticamente si usamos router.visit
-        router.visit(route('login'), {
-            data: { 
-                // Truco opcional: enviar query param para saber que volvemos
-                return_url: window.location.href 
-            }
-        }); 
+        confirmDialog(
+            'Iniciar Sesión', 
+            'Debes estar registrado para comprar pasajes. ¿Deseas ingresar ahora?',
+            () => {
+                router.visit(route('login'), {
+                    data: { return_url: window.location.href }
+                });
+            },
+            'info'
+        );
         return;
     }
 
@@ -169,17 +174,16 @@ const handleCheckout = async () => {
         });
 
         if (response.status === 201) {
-            alert('¡Reserva Exitosa!');
+            notify('¡Reserva Exitosa! Redirigiendo...', 'success');
             router.visit('/');
         }
     } catch (error) {
-        console.error(error);
-        if (error.response?.status === 401) {
-             // Doble chequeo de seguridad
-             window.location.href = '/login';
-        } else {
-             alert(error.response?.data?.message || 'Error al reservar');
-        }
+         console.error(error);
+        const msg = error.response?.data?.message || 'Error al reservar';
+        // REEMPLAZO DE ALERT:
+        notify(msg, 'error');
+        
+        if (error.response?.status === 401) window.location.href = '/login';
     }
 };
 
