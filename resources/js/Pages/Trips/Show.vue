@@ -216,7 +216,7 @@ const showToast = (msg) => {
 
 <template>
   <MainLayout>
-    <v-container class="py-8">
+    <v-container class="py-8 pb-16">
         
         <!-- Loading -->
         <div v-if="loading" class="d-flex justify-center align-center" style="height: 400px;">
@@ -372,7 +372,29 @@ const showToast = (msg) => {
             </v-col>
         </v-row>
 
+
     </v-container>
+    <v-footer app class="d-lg-none bg-white elevation-10 border-t py-2 px-4" v-if="!loading">
+    <div class="d-flex align-center justify-space-between w-100">
+        <div>
+            <div class="text-caption text-grey">Total a pagar</div>
+            <div class="text-h6 font-weight-bold text-indigo-darken-3">
+                ${{ totalPrice > 0 ? totalPrice : '0' }}
+            </div>
+        </div>
+
+        <v-btn 
+            color="success" 
+            size="large"
+            class="px-6 font-weight-bold"
+            rounded="lg"
+            :disabled="selectedSeats.length === 0"
+            @click="handleCheckout"
+        >
+            Confirmar ({{ selectedSeats.length }})
+        </v-btn>
+    </div>
+</v-footer>
   </MainLayout>
 </template>
 

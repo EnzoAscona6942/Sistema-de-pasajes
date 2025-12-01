@@ -26,7 +26,7 @@ class TripFactory extends Factory
             'arrival_time_estimated' => $arrival,
             
             // Precio base entre 5.000 y 60.000
-            'base_price' => $this->faker->randomFloat(2, 5000, 60000),
+            'base_price' => $this->faker->randomFloat(null, 5000, 60000),
         ];
     }
 }

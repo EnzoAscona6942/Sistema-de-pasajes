@@ -66,50 +66,71 @@ onMounted(async () => {
       <!-- LISTADO (Datos reales de la API) -->
       <v-row v-else>
         <v-col v-for="trip in trips" :key="trip.trip_id" cols="12">
-          <v-card elevation="2" class="rounded-lg border d-flex flex-wrap align-center pa-0 overflow-hidden hover-card">
-            
-            <!-- Lado Izquierdo -->
-            <div class="d-flex flex-column justify-center align-center px-4 py-4 bg-grey-lighten-4 h-100" style="min-width: 140px; border-left: 6px solid #3F51B5;">
-               <v-icon size="40" color="indigo-lighten-2" class="mb-2">mdi-bus-side</v-icon>
-               <div class="text-caption font-weight-bold text-center text-uppercase">{{ trip.company }}</div>
-               <v-chip size="x-small" color="indigo" variant="flat" class="mt-2 text-uppercase font-weight-bold">
-                 {{ trip.service_type }}
-               </v-chip>
+          <v-card elevation="2" class="rounded-lg border overflow-hidden hover-card">
+    <div class="d-flex flex-column flex-md-row"> <!-- CLAVE: Columna en móvil, Fila en Desktop -->
+        
+        <!-- 1. Izquierda: Empresa (Arriba en móvil) -->
+        <div class="d-flex flex-row flex-md-column justify-space-between justify-md-center align-center px-4 py-3 bg-grey-lighten-4" 
+             style="min-width: 140px; border-left: 6px solid #3F51B5;">
+            <!-- Icono y Nombre -->
+            <div class="d-flex flex-md-column align-center">
+                <v-icon size="32" color="indigo-lighten-2" class="mr-2 mr-md-0 mb-md-2">mdi-bus-side</v-icon>
+                <div class="text-caption font-weight-bold text-uppercase">{{ trip.company }}</div>
             </div>
+            <!-- Chip Servicio -->
+            <v-chip size="x-small" color="indigo" variant="flat" class="text-uppercase font-weight-bold ml-2 ml-md-0 mt-md-2">
+                {{ trip.service_type }}
+            </v-chip>
+        </div>
 
-            <!-- Centro -->
-            <div class="flex-grow-1 pa-4">
-               <div class="d-flex align-center justify-space-between mb-2" style="max-width: 400px;">
-                  <div class="text-center">
-                     <div class="text-h4 font-weight-bold text-grey-darken-3">{{ trip.departure_time }}</div>
-                  </div>
-                  <div class="d-flex flex-column align-center px-4 w-100">
-                     <div class="text-caption text-grey mb-1">{{ trip.duration }}</div>
-                     <v-divider class="border-opacity-50 w-100 border-indigo" :thickness="2"></v-divider>
-                     <v-icon size="small" color="indigo" style="margin-top: -10px;">mdi-chevron-right</v-icon>
-                  </div>
-                  <div class="text-center">
-                     <div class="text-h5 font-weight-bold text-grey-darken-1">{{ trip.arrival_time }}</div>
-                  </div>
-               </div>
+        <!-- 2. Centro: Info Viaje -->
+        <div class="flex-grow-1 pa-4">
+            <div class="d-flex flex-column flex-sm-row align-center justify-space-between gap-4">
+                
+                <!-- Salida -->
+                <div class="text-center w-100 w-sm-auto">
+                    <div class="text-h4 font-weight-bold text-grey-darken-3">{{ trip.departure_time }}</div>
+                    <div class="text-caption text-truncate" style="max-width: 120px;">{{ trip.origin }}</div>
+                </div>
+
+                <!-- Duración (Flecha) -->
+                <div class="d-flex flex-column align-center px-2 w-100">
+                    <div class="text-caption text-grey mb-1">{{ trip.duration }}</div>
+                    <!-- Ocultamos la linea en moviles muy chicos -->
+                    <v-divider class="border-opacity-50 w-100 border-indigo d-none d-sm-block" :thickness="2"></v-divider>
+                    <v-icon class="d-sm-none" color="grey">mdi-arrow-down</v-icon>
+                    <v-icon size="small" color="indigo" class="d-none d-sm-block" style="margin-top: -10px;">mdi-chevron-right</v-icon>
+                </div>
+
+                <!-- Llegada -->
+                <div class="text-center w-100 w-sm-auto">
+                    <div class="text-h5 font-weight-bold text-grey-darken-1">{{ trip.arrival_time }}</div>
+                    <div class="text-caption text-truncate" style="max-width: 120px;">{{ trip.destination }}</div>
+                </div>
             </div>
+        </div>
 
-            <!-- Lado Derecho -->
-            <div class="pa-4 text-right bg-white" style="min-width: 180px;">
-               <div class="text-caption text-grey mb-1">Precio desde</div>
-               <div class="text-h5 font-weight-black text-green-darken-1 mb-3">
-                  ${{ trip.price_preview }}
-               </div>
-               
-               <!-- Usamos trip.trip_id porque así lo devuelve tu API Controller -->
-               <Link :href="route('trips.show', { trip: trip.trip_id, passengers: filters.passengers || 1 })" as="div">
-                 <v-btn color="deep-orange-darken-1" block class="text-white text-capitalize font-weight-bold">
-                    Seleccionar
-                 </v-btn>
-               </Link>
+        <!-- 3. Derecha: Precio y Acción (Abajo en móvil) -->
+        <div class="pa-4 text-center text-md-right bg-white border-t border-md-t-0 border-md-s" style="min-width: 180px;">
+            <div class="d-flex flex-row flex-md-column justify-space-between align-center h-100">
+                
+                <div class="text-left text-md-right">
+                    <div class="text-caption text-grey mb-0 mb-md-1">Precio final</div>
+                    <div class="text-h5 font-weight-black text-green-darken-1">
+                        ${{ trip.price_preview }}
+                    </div>
+                </div>
+                
+                <Link :href="route('trips.show', { trip: trip.trip_id, passengers: 1 })" as="div" class="w-50 w-md-100 ml-4 ml-md-0">
+                    <v-btn color="deep-orange-darken-1" block class="text-white text-capitalize font-weight-bold">
+                        Seleccionar
+                    </v-btn>
+                </Link>
             </div>
+        </div>
 
-          </v-card>
+    </div>
+</v-card>
         </v-col>
       </v-row>
 

@@ -26,7 +26,7 @@ class DatabaseSeeder extends Seeder
 
         // Usuario Pasajero
         User::factory()->create([
-            'name'     => 'Pasajero Demo',
+            'name'     => 'Pasajero Cliente',
             'email'    => 'cliente@gmail.com',
             'password' => 'password',
             'dni'      => '22222222',

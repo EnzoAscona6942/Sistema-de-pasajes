@@ -20,7 +20,7 @@ return new class extends Migration
             $table->dateTime('arrival_time_estimated');
             
             // Precio base con precisión monetaria
-            $table->decimal('base_price', 10, 2); 
+            $table->decimal('base_price', 10); 
             
             $table->timestamps();
 
